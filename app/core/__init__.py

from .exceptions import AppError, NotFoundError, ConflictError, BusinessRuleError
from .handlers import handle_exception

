@@ -1,0 +1,92 @@
+from __future__ import annotations
+
+from .database import db
+from .database import Course, Lecture, Practice, Student, Enrollment, Submission
+
+
+def seed_database() -> None:
+    db.reset()
+
+    course_id = db.next_id("course")
+    course = Course(id=course_id, title="Data Wrangling and Visualization", description="Combined course", status="published")
+    db.courses.append(course)
+
+    lecture_contents = [
+        "Intro to data wrangling and project setup.",
+        "Cleaning data with pandas.",
+        "Dealing with missing values.",
+        "Merging and joining datasets.",
+        "Reshaping data with pivot and melt.",
+        "Basic visualization principles.",
+        "Plotting with matplotlib.",
+        "Using seaborn for statistical plots.",
+        "Storytelling with charts.",
+        "Exploratory data analysis workflow.",
+        "Working with time series.",
+        "Dashboard thinking and reporting.",
+        "Final review and project wrap-up.",
+    ]
+
+    for idx, content in enumerate(lecture_contents, start=1):
+        lecture = Lecture(
+            id=db.next_id("lecture"),
+            course_id=course.id,
+            title=f"Lecture {idx}",
+            content=content,
+            status="published",
+        )
+        db.lectures.append(lecture)
+
+    practice_specs = [
+        ("Data cleaning challenge", "Clean a messy dataset and explain missing data handling.", 1, 10),
+        ("Join exercise", "Combine several tables and validate the result.", 2, 10),
+        ("Visualization practice", "Create a chart and justify your design choices.", 3, 10),
+        ("Eda report", "Prepare a short exploratory analysis of a dataset.", 4, 10),
+        ("Capstone quiz", "Answer analysis questions with a short notebook summary.", 5, 10),
+    ]
+
+    for title, description, lecture_id, max_points in practice_specs:
+        practice = Practice(
+            id=db.next_id("practice"),
+            course_id=course.id,
+            title=title,
+            description=description,
+            lecture_id=lecture_id,
+            max_points=max_points,
+            status="published",
+        )
+        db.practices.append(practice)
+
+    for idx in (1, 2):
+        student = Student(id=idx, name=f"Student {idx}")
+        db.students.append(student)
+
+
+def get_course_by_id(course_id: int) -> Course | None:
+    return next((c for c in db.courses if c.id == course_id), None)
+
+
+def get_lecture_by_id(course_id: int, lecture_id: int) -> Lecture | None:
+    return next((l for l in db.lectures if l.course_id == course_id and l.id == lecture_id), None)
+
+
+def get_practice_by_id(course_id: int, practice_id: int) -> Practice | None:
+    return next((p for p in db.practices if p.course_id == course_id and p.id == practice_id), None)
+
+
+def get_student_by_id(student_id: int) -> Student | None:
+    return next((s for s in db.students if s.id == student_id), None)
+
+
+def get_enrollment_by_id(enrollment_id: int) -> Enrollment | None:
+    return next((e for e in db.enrollments if e.id == enrollment_id), None)
+
+
+def create_enrollment(student_id: int, course_id: int) -> Enrollment:
+    enrollment = Enrollment(id=db.next_id("enrollment"), student_id=student_id, course_id=course_id)
+    db.enrollments.append(enrollment)
+    return enrollment
+
+
+def get_submissions_for_enrollment(enrollment_id: int) -> list[Submission]:
+    return [s for s in db.submissions if s.enrollment_id == enrollment_id]
